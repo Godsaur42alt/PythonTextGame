@@ -1,3 +1,5 @@
+
+
 from character import *
 from random import *
 
@@ -68,7 +70,7 @@ def combat():
    global enemyArr
    turnCount = 1
    while len(enemyArr) > 0:
-       if playinput == "runaway":
+       if playinput.lower().strip() == "a":
            break
        print("Turn " + str(turnCount))
        print("Your health is "+str(player.get_health()))
@@ -82,24 +84,24 @@ def combat():
        while True:
            playerinput(
                "what do you want to do \n Q. attack        E. defend \n A. runaway       D. stats(keeps turn)\n")
-           if playinput == "attack":
+           if playinput.lower().strip() == "q":
                playerinput("type in the number of the enemy you want to attack\n")
                player.attack(enemyArr[int(playinput)])
                break
-           elif playinput == "defend":
+           elif playinput.lower().strip() == "e":
                player.set_defence(player.get_base_defence() + 5)
                print("you've increased your defence by 5")
                break
-           elif playinput == "runaway":
+           elif playinput.lower().strip() == "a":
                break
-           elif playinput == "stat":
+           elif playinput.lower().strip() == "d":
                playerinput(
-                   "Type my stats for your stats, type type to get the stats for a type of enemy, or type the number for the enemy you want")
-               if playinput == "my stats":
+                   "Type m for your stats, type i to get the enemy index, or type the number of the enemy you want info about\n")
+               if playinput.lower().strip() == "m":
                    print("Your name is " + player.get_name() + "\n  your health is " + str(
                        player.get_health()) + "\n  your damage is " + str(
                        player.get_damage()) + "\n  your defence is " + str(player.get_defence()))
-               elif playinput == "type":
+               elif playinput.lower().strip() == "i":
                    playerinput("Type the type of enemy you want to know about\n")
                    if playinput == "goblin":
                        r = Goblin()
@@ -127,4 +129,3 @@ def combat():
 spawnEnemies(1,3)
 print(enemyArr[0].get_base_health())
 combat()
-
