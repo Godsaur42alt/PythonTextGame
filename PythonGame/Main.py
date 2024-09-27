@@ -76,12 +76,12 @@ def combat():
            if enemyArr[l].get_health() <= 0:
                print(enemyArr[l].get_type() + " has died")
                enemyArr.pop(l)
-           print(str(l) + ". You see a " + enemyArr[l].get_type() + " it has " + str(
-               enemyArr[l].get_health()) + " health")
+           print(str(l) + ". Enemy: " + enemyArr[l].get_type() + "(" + str(
+               enemyArr[l].get_health()) + "hp)")
        player.set_defence(player.get_base_defence())
        while True:
            playerinput(
-               "what do you want to do \n attack \n defend \n runaway \n stats(looking at stats doesn't pass the turn)\n")
+               "what do you want to do \n Q. attack        E. defend \n A. runaway       D. stats(keeps turn)\n")
            if playinput == "attack":
                playerinput("type in the number of the enemy you want to attack\n")
                player.attack(enemyArr[int(playinput)])
