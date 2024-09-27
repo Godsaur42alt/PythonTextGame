@@ -1,4 +1,4 @@
-rom character import *
+from character import *
 from random import *
 
 
