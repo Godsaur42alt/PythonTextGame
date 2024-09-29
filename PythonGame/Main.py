@@ -127,5 +127,4 @@ def combat():
 # player.attack(goblin)
 # print(player.get_kills())
 spawnEnemies(1,3)
-print(enemyArr[0].get_base_health())
 combat()
