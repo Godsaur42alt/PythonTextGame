@@ -1,5 +1,3 @@
-
-
 from character import *
 from random import *
 
@@ -70,7 +68,7 @@ def combat():
    global enemyArr
    turnCount = 1
    while len(enemyArr) > 0:
-       if playinput.lower().strip() == "a":
+       if playinput.lower().strip() == "r":
            break
        print("Turn " + str(turnCount))
        print("Your health is "+str(player.get_health()))
@@ -78,21 +76,20 @@ def combat():
            if enemyArr[l].get_health() <= 0:
                print(enemyArr[l].get_type() + " has died")
                enemyArr.pop(l)
-           print(str(l) + ". Enemy: " + enemyArr[l].get_type() + "(" + str(
-               enemyArr[l].get_health()) + "hp)")
+           print(str(l+1) + ". Enemy: " + enemyArr[l].get_type() + "(" + str(enemyArr[l].get_health()) + "hp)")
        player.set_defence(player.get_base_defence())
        while True:
            playerinput(
-               "what do you want to do \n Q. attack        E. defend \n A. runaway       D. stats(keeps turn)\n")
-           if playinput.lower().strip() == "q":
+               "what do you want to do \n A. attack        D. defend \n R. runaway       S. stats(keeps turn)\n")
+           if playinput.lower().strip() == "a":
                playerinput("type in the number of the enemy you want to attack\n")
-               player.attack(enemyArr[int(playinput)])
+               player.attack(enemyArr[int(playinput)-1])
                break
-           elif playinput.lower().strip() == "e":
+           elif playinput.lower().strip() == "d":
                player.set_defence(player.get_base_defence() + 5)
                print("you've increased your defence by 5")
                break
-           elif playinput.lower().strip() == "a":
+           elif playinput.lower().strip() == "s":
                break
            elif playinput.lower().strip() == "d":
                playerinput(
@@ -108,7 +105,7 @@ def combat():
                    elif playinput == "orc":
                        r = Orc()
                    print("a "+r.get_type()+"'s health is " + str(r.get_health()) + "\n a"+r.get_type()+"'s damage is " + str(r.get_damage()) + "\n a "+r.get_type()+"'s defence is " + str(r.get_defence()))
-       for x in range(len(enemyArr)):
+       for x in range(len(enemyArr)-1):
            enemyActions(enemyArr[x],x)
        turnCount += 1
 
