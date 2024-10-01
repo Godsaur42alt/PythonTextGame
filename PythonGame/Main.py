@@ -43,11 +43,13 @@ def createEnemy(type="null"):
 
 
 
-def playerinput(text="", cap=False):
+def playerinput(text="", cap=False,strip=True):
    global playinput
    playinput = input(text)
    if cap == False:
        playinput = playinput.lower()
+   if strip== True:
+      playinput.strip()
    return (playinput)
 
 
@@ -68,7 +70,7 @@ def combat():
    global enemyArr
    turnCount = 1
    while len(enemyArr) > 0:
-       if playinput.lower().strip() == "r":
+       if playinput == "r":
            break
        print("Turn " + str(turnCount))
        print("Your health is "+str(player.get_health()))
@@ -81,24 +83,24 @@ def combat():
        while True:
            playerinput(
                "what do you want to do \n A. attack        D. defend \n R. runaway       S. stats(keeps turn)\n")
-           if playinput.lower().strip() == "a":
+           if playinput == "a":
                playerinput("type in the number of the enemy you want to attack\n")
                player.attack(enemyArr[int(playinput)-1])
                break
-           elif playinput.lower().strip() == "d":
+           elif playinput == "d":
                player.set_defence(player.get_base_defence() + 5)
                print("you've increased your defence by 5")
                break
-           elif playinput.lower().strip() == "s":
+           elif playinput == "s":
                break
-           elif playinput.lower().strip() == "d":
+           elif playinput == "d":
                playerinput(
                    "Type m for your stats, type i to get the enemy index, or type the number of the enemy you want info about\n")
-               if playinput.lower().strip() == "m":
+               if playinput == "m":
                    print("Your name is " + player.get_name() + "\n  your health is " + str(
                        player.get_health()) + "\n  your damage is " + str(
                        player.get_damage()) + "\n  your defence is " + str(player.get_defence()))
-               elif playinput.lower().strip() == "i":
+               elif playinput == "i":
                    playerinput("Type the type of enemy you want to know about\n")
                    if playinput == "goblin":
                        r = Goblin()
