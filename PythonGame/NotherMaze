@@ -1,260 +1,178 @@
-# -*- coding: utf-8 -*-
 import random
-
-# Easy to read representation for each cardinal direction.
-N, S, W, E = ('n', 's', 'w', 'e')
-
-class Cell(object):
-    """
-    Class for each individual cell. Knows only its position and which walls are
-    still standing.
-    """
-    def __init__(self, x, y, walls):
-        self.x = x
-        self.y = y
-        self.walls = set(walls)
-
-    def __repr__(self):
-        # <15, 25 (es  )>
-        return '<{}, {} ({:4})>'.format(self.x, self.y, ''.join(sorted(self.walls)))
-
-    def __contains__(self, item):
-        # N in cell
-        return item in self.walls
-
-    def is_full(self):
-        """
-        Returns True if all walls are still standing.
-        """
-        return len(self.walls) == 4
-
-    def _wall_to(self, other):
-        """
-        Returns the direction to the given cell from the current one.
-        Must be one cell away only.
-        """
-        assert abs(self.x - other.x) + abs(self.y - other.y) == 1, '{}, {}'.format(self, other)
-        if other.y < self.y:
-            return N
-        elif other.y > self.y:
-            return S
-        elif other.x < self.x:
-            return W
-        elif other.x > self.x:
-            return E
+class Cell:
+    def __init__(self):
+        self.nw=True
+        self.sw=True
+        self.ew=True
+        self.ww=True
+        self.visted=False
+        self.descr=""
+        self.connections=[]
+        self.make_descr()
+    def make_descr(self,rtype="none"):
+        types=["treasure","empty","fight","tables"]
+        if rtype=="none":
+            ctype=random.choice(types)
         else:
-            assert False
-
-    def connect(self, other):
-        """
-        Removes the wall between two adjacent cells.
-        """
-        other.walls.remove(other._wall_to(self))
-        self.walls.remove(self._wall_to(other))
-
-class Maze(object):
-    """
-    Maze class containing full board and maze generation algorithms.
-    """
-
-    # Unicode character for a wall with other walls in the given directions.
-    UNICODE_BY_CONNECTIONS = {'ensw': '┼',
-                              'ens': '├',
-                              'enw': '┴',
-                              'esw': '┬',
-                              'es': '┌',
-                              'en': '└',
-                              'ew': '─',
-                              'e': '╶',
-                              'nsw': '┤',
-                              'ns': '│',
-                              'nw': '┘',
-                              'sw': '┐',
-                              's': '╷',
-                              'n': '╵',
-                              'w': '╴'}
-
-    def __init__(self, width=20, height=10):
-        """
-        Creates a new maze with the given sizes, with all walls standing.
-        """
-        self.width = width
-        self.height = height
-        self.cells = []
-        for y in range(self.height):
-            for x in range(self.width):
-                self.cells.append(Cell(x, y, [N, S, E, W]))
-
-    def __getitem__(self, index):
-        """
-        Returns the cell at index = (x, y).
-        """
-        x, y = index
-        if 0 <= x < self.width and 0 <= y < self.height:
-            return self.cells[x + y * self.width]
+            ctype=rtype
+        if ctype=="treasure":
+            self.decr="treasure"
+        elif ctype=="empty":
+            self.decr="empty"
+        elif ctype=="fight":
+            self.decr="fight"
+        elif ctype=="tables":
+            self.decr="tables"
+    def get_descr(self):
+        return self.descr
+            
+    def break_wall(self,wall):
+        if wall=="nw":
+            self.nw=False
+        if wall=="sw":
+            self.sw=False
+        if wall=="ew":
+            self.ew=False
+        if wall=="ww":
+            self.ww=False
+        self.vist()
+        self.add_connection(wall)
+    def was_visted(self):
+        if self.visted:
+            return True
         else:
-            return None
-
-    def neighbors(self, cell):
-        """
-        Returns the list of neighboring cells, not counting diagonals. Cells on
-        borders or corners may have less than 4 neighbors.
-        """
-        x = cell.x
-        y = cell.y
-        for new_x, new_y in [(x, y - 1), (x, y + 1), (x - 1, y), (x + 1, y)]:
-            neighbor = self[new_x, new_y]
-            if neighbor is not None:
-                yield neighbor
-
-    def _to_str_matrix(self):
-        """
-        Returns a matrix with a pretty printed visual representation of this
-        maze. Example 5x5:
-
-        OOOOOOOOOOO
-        O       O O
-        OOO OOO O O
-        O O   O   O
-        O OOO OOO O
-        O   O O   O
-        OOO O O OOO
-        O   O O O O
-        O OOO O O O
-        O     O   O
-        OOOOOOOOOOO
-        """
-        str_matrix = [['O'] * (self.width * 2 + 1)
-                      for i in range(self.height * 2 + 1)]
-
-        for cell in self.cells:
-            x = cell.x * 2 + 1
-            y = cell.y * 2 + 1
-            str_matrix[y][x] = ' '
-            if N not in cell and y > 0:
-                str_matrix[y - 1][x + 0] = ' '
-            if S not in cell and y + 1 < self.width:
-                str_matrix[y + 1][x + 0] = ' '
-            if W not in cell and x > 0:
-                str_matrix[y][x - 1] = ' '
-            if E not in cell and x + 1 < self.width:
-                str_matrix[y][x + 1] = ' '
-
-        return str_matrix
-
-    def __repr__(self):
-        """
-        Returns an Unicode representation of the maze. Size is doubled
-        horizontally to avoid a stretched look. Example 5x5:
-
-        ┌───┬───────┬───────┐
-        │   │       │       │
-        │   │   ╷   ╵   ╷   │
-        │   │   │       │   │
-        │   │   └───┬───┘   │
-        │   │       │       │
-        │   └───────┤   ┌───┤
-        │           │   │   │
-        │   ╷   ╶───┘   ╵   │
-        │   │               │
-        └───┴───────────────┘
-        """
-        # Starts with regular representation. Looks stretched because chars are
-        # twice as high as they are wide (look at docs example in
-        # `Maze._to_str_matrix`).
-        skinny_matrix = self._to_str_matrix()
-
-        # Simply duplicate each character in each line.
-        double_wide_matrix = []
-        for line in skinny_matrix:
-            double_wide_matrix.append([])
-            for char in line:
-                double_wide_matrix[-1].append(char)
-                double_wide_matrix[-1].append(char)
-
-        # The last two chars of each line are walls, and we will need only one.
-        # So we remove the last char of each line.
-        matrix = [line[:-1] for line in double_wide_matrix]
-
-        def g(x, y):
-            """
-            Returns True if there is a wall at (x, y). Values outside the valid
-            range always return false.
-
-            This is a temporary helper function.
-            """
-            if 0 <= x < len(matrix[0]) and 0 <= y < len(matrix):
-                return matrix[y][x] != ' '
+            return False
+    def print_cell_top(self):
+        disp="┌──┐"
+        if self.nw==False:
+            disp="┌  ┐"
+        return disp
+    def print_cell_mid(self):
+        disp="|  |"
+        if self.ew==False and self.ww==False:
+            disp="    "
+        elif self.ew==False:
+            disp="|   "
+        elif self.ww==False:
+            disp="   |"
+        return disp
+    def print_cell_bot(self):
+        disp="└──┘"
+        if self.sw==False:
+            disp="└  ┘"
+        return disp
+    def vist(self):
+        self.visted=True
+    def add_connection(self,direct):
+        self.connections.append(direct)
+    def get_conections(self,specified="none"):
+        if specified=="none":
+            print(self.connections)
+            return self.connections
+        else:
+            if specified in self.connections:
+                return True
             else:
                 return False
+                
 
-        # Fix double wide walls, finally giving the impression of a symmetric
-        # maze.
-        for y, line in enumerate(matrix):
-            for x, char in enumerate(line):
-                if not g(x, y) and g(x - 1, y):
-                    matrix[y][x - 1] = ' '
+class Maze:
+    def __init__(self, row=10,column=10,intialize=True):
+        self.maze=[]
+        self.row=row
+        self.column=column
+        if intialize:
+            self.set_maze()
+            self.dfs()
+    def set_maze(self):
+        for row in range(self.row):
+            xrow=[]
+            for column in range(self.column):
+                c=Cell()
+                xrow.append(c)
+            self.maze.append(xrow)
 
-        # Right now the maze has the correct aspect ratio, but is still using
-        # 'O' to represent walls.
+    def dfs(self):
+        def get_unvisited_neighbors(x,y):
+            neighbors=[]
+            if x+1<=self.column-1 and self.maze[y][x+1].was_visted()==False:
+                neighbors.append((x+1,y))
+            if x-1>=0 and self.maze[y][x-1].was_visted()==False:
+                neighbors.append((x-1,y))
+            if y+1<=self.row-1 and self.maze[y+1][x].was_visted()==False:
+                neighbors.append((x,y+1))
+            if y-1>=0 and self.maze[y-1][x].was_visted()==False:
+                neighbors.append((x,y-1))
+            return neighbors
+           
+        x, y = random.randrange(1, self.column-1, 2), random.randrange(1, self.row, 2)
+        self.maze[y][x].vist()
+        stack=[(x,y)]
 
-        # Finally we replace the walls with Unicode characters depending on
-        # their context.
-        for y, line in enumerate(matrix):
-            for x, char in enumerate(line):
-                if not g(x, y):
-                    continue
-
-                connections = set((N, S, E, W))
-                if not g(x, y + 1): connections.remove(S)
-                if not g(x, y - 1): connections.remove(N)
-                if not g(x + 1, y): connections.remove(E)
-                if not g(x - 1, y): connections.remove(W)
-
-                str_connections = ''.join(sorted(connections))
-                # Note we are changing the matrix we are reading. We need to be
-                # careful as to not break the `g` function implementation.
-                matrix[y][x] = Maze.UNICODE_BY_CONNECTIONS[str_connections]
-
-        # Simple double join to transform list of lists into string.
-        return '\n'.join(''.join(line) for line in matrix) + '\n'
-
-    def randomize(self):
-        """
-        Knocks down random walls to build a random perfect maze.
-
-        Algorithm from http://mazeworks.com/mazegen/mazetut/index.htm
-        """
-        cell_stack = []
-        cell = random.choice(self.cells)
-        n_visited_cells = 1
-
-        while n_visited_cells < len(self.cells):
-            neighbors = [c for c in self.neighbors(cell) if c.is_full()]
-            if len(neighbors):
-                neighbor = random.choice(neighbors)
-                cell.connect(neighbor)
-                cell_stack.append(cell)
-                cell = neighbor
-                n_visited_cells += 1
+        # DFS algorithm
+        while stack:
+            x, y = stack[-1]
+            neighbors = get_unvisited_neighbors(x, y)
+            if neighbors:
+                nx, ny = random.choice(neighbors)
+                if ny>y:
+                    direct="sw"
+                    idirect="nw"
+                elif ny<y:
+                    direct="nw"
+                    idirect="sw"
+                elif nx>x:
+                    direct="ew"
+                    idirect="ww"
+                elif nx<x:
+                    direct="ww"
+                    idirect="ew"
+                self.maze[ny][nx].vist()
+                self.maze[y][x].break_wall(direct)
+                self.maze[ny][nx].break_wall(idirect)
+                stack.append((nx, ny))
             else:
-                cell = cell_stack.pop()
+                stack.pop()
+               
+    def print_maze(self):
+        pmaze=[]
+        for row in range(len(self.maze)):
+            crow=[]
+            trow=[]
+            mrow=[]
+            brow=[]
+            for col in range(len(self.maze[row])):
+                cell=self.maze[row][col]
+                trow.append(cell.print_cell_top())
+                mrow.append(cell.print_cell_mid())
+                brow.append(cell.print_cell_bot())
+            crow.append(trow)
+            crow.append(mrow)
+            crow.append(brow)
+            pmaze.append(crow)
+   
+        for a in range(len(pmaze)):
+            #crow is getting looped now
+            for b in range(len(pmaze[a])):
+                bigstring=""
+                #crow's top row, mid row, and bottom row
+                for c in range(len(pmaze[a][b])):
+                    bigstring+=pmaze[a][b][c]
+                print(bigstring)
+    def get_cell(self,x,y):
+        return self.maze[y][x]
+    def get_maze(self):
+        return self.maze
+    def get_rows(self):
+        return self.row
+    def get_column(self):
+        return self.column
+ms=Maze(5,5)
 
-    @staticmethod
-    def generate(width=20, height=10):
-        """
-        Returns a new random perfect maze with the given sizes.
-        """
-        m = Maze(width, height)
-        m.randomize()
-        return m
-                    
-maze=Maze()
-maze.generate()
-maze._to_str_matrix
-maze.__repr__()
-print(maze)
+ms.print_maze()
+r=ms.get_maze()
+for row in range(len(r)):
+    for column in range(len(r[row])):
+        cv=r[row][column]
+        cv.get_conections()
 
-
-
-        
