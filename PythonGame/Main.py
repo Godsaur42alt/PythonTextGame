@@ -1,4 +1,5 @@
 from character import *
+from Maze import *
 from random import *
 
 
