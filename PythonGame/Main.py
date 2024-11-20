@@ -1,13 +1,13 @@
 from character import *
-from Maze import *
 from random import *
 
 
 player = Player()
-playinput = ""
+pcplayinput=""
+Cplayinput = ""
 enemyArr = []
 
-
+print(len(enemyArr))
 
 
 def enemyActions(taker, pos=0, target=player):
@@ -44,14 +44,15 @@ def createEnemy(type="null"):
 
 
 
-def playerinput(text="", cap=False,strip=True):
-   global playinput
-   playinput = input(text)
+def Cplayerinput(text="", cap=False,strip=True):
+   global Cplayinput
+   pcplayinput=Cplayinput
+   Cplayinput = input(text)
    if cap == False:
-       playinput = playinput.lower()
+       Cplayinput = Cplayinput.lower()
    if strip== True:
-      playinput.strip()
-   return (playinput)
+      Cplayinput.strip()
+   return (Cplayinput)
 
 
 
@@ -59,6 +60,7 @@ def playerinput(text="", cap=False,strip=True):
 def spawnEnemies(num1=1, num2=10, clear=True):
    global enemyArr
    if clear == True:
+       print("cl")
        enemyArr = []
    numE = randint(num1, num2)
    for r in range(numE):
@@ -71,41 +73,52 @@ def combat():
    global enemyArr
    turnCount = 1
    while len(enemyArr) > 0:
-       if playinput == "r":
+       if Cplayinput == "r":
+           print("you ran away")
            break
        print("Turn " + str(turnCount))
        print("Your health is "+str(player.get_health()))
        for l in range(len(enemyArr)):
-           if enemyArr[l].get_health() <= 0:
+           print(l)
+           if enemyArr[l].get_health() <= 0 and len(enemyArr)!=0:
                print(enemyArr[l].get_type() + " has died")
                enemyArr.pop(l)
+               if len(enemyArr)==0:
+                   print("You killed them All")
+                   break
+               print(l)
            print(str(l+1) + ". Enemy: " + enemyArr[l].get_type() + "(" + str(enemyArr[l].get_health()) + "hp)")
        player.set_defence(player.get_base_defence())
+       if len(enemyArr) == 0:
+           break
        while True:
-           playerinput(
+           Cplayerinput(
                "what do you want to do \n A. attack        D. defend \n R. runaway       S. stats(keeps turn)\n")
-           if playinput == "a":
-               playerinput("type in the number of the enemy you want to attack\n")
-               player.attack(enemyArr[int(playinput)-1])
+           if Cplayinput == "a":
+               Cplayerinput("type in the number of the enemy you want to attack\n")
+               while int(Cplayinput)>len(enemyArr):
+                   print("That wasn't an enemy")
+                   Cplayerinput()
+               player.attack(enemyArr[int(Cplayinput)-1])
                break
-           elif playinput == "d":
+           elif Cplayinput == "d":
                player.set_defence(player.get_base_defence() + 5)
                print("you've increased your defence by 5")
                break
-           elif playinput == "s":
+           elif Cplayinput == "r":
                break
-           elif playinput == "d":
-               playerinput(
+           elif Cplayinput == "s":
+               Cplayerinput(
                    "Type m for your stats, type i to get the enemy index, or type the number of the enemy you want info about\n")
-               if playinput == "m":
+               if Cplayinput == "m":
                    print("Your name is " + player.get_name() + "\n  your health is " + str(
                        player.get_health()) + "\n  your damage is " + str(
                        player.get_damage()) + "\n  your defence is " + str(player.get_defence()))
-               elif playinput == "i":
-                   playerinput("Type the type of enemy you want to know about\n")
-                   if playinput == "goblin":
+               elif Cplayinput == "i":
+                   Cplayerinput("Type the type of enemy you want to know about\n")
+                   if Cplayinput == "goblin":
                        r = Goblin()
-                   elif playinput == "orc":
+                   elif Cplayinput == "orc":
                        r = Orc()
                    print("a "+r.get_type()+"'s health is " + str(r.get_health()) + "\n a"+r.get_type()+"'s damage is " + str(r.get_damage()) + "\n a "+r.get_type()+"'s defence is " + str(r.get_defence()))
        for x in range(len(enemyArr)-1):
@@ -113,10 +126,10 @@ def combat():
        turnCount += 1
 
 
-# while playinput!="yes":
-#   player.set_name(playerinput("Type in your name",True))
+# while Cplayinput!="yes":
+#   player.set_name(Cplayerinput("Type in your name",True))
 #   print(player.get_name()+" is this correct? Type yes or no")
-#   playerinput()
+#   Cplayerinput()
 # goblin=createEnemy("goblin")
 # print(goblin.get_health())
 # player.set_damage(20)
@@ -126,5 +139,7 @@ def combat():
 # print(player.get_health())
 # player.attack(goblin)
 # print(player.get_kills())
-spawnEnemies(1,3)
-combat()
+# while Cplayinput!="quit":
+#     spawnEnemies(1,3)
+#     print(enemyArr)
+#     combat()
