@@ -1,13 +1,16 @@
 import random
 
-def playerinput(text="", cap=False,strip=True):
-   global playinput
-   playinput = input(text)
+Mplayinput=""
+
+
+def Mplayerinput(text="", cap=False,strip=True):
+   global Mplayinput
+   Mplayinput = input(text)
    if cap == False:
-       playinput = playinput.lower()
+       Mplayinput = Mplayinput.lower()
    if strip== True:
-      playinput.strip()
-   return (playinput)
+      Mplayinput.strip()
+   return (Mplayinput)
 
 class Cell:
     def __init__(self):
@@ -59,34 +62,34 @@ class Cell:
             return False
 
     def print_cell_top(self):
-        disp = "┌──┐"
+        disp = "┌───┐"
         if self.nw == False:
-            disp = "┌  ┐"
+            disp = "┌   ┐"
         return disp
 
     def print_cell_mid(self):
         if self.cp:
-            disp = "|◖◗|"
+            disp = "| \033[1;31m@\033[0m |"
             if self.ew == False and self.ww == False:
-                disp = " ◖◗ "
+                disp = "  \033[1;31m@\033[0m  "
             elif self.ew == False:
-                disp = "|◖◗ "
+                disp = "| \033[1;31m@\033[0m  "
             elif self.ww == False:
-                disp = " ◖◗|"
+                disp = "  \033[1;31m@\033[0m |"
         else:
-            disp = "|  |"
+            disp = "|   |"
             if self.ew == False and self.ww == False:
-                disp = "    "
+                disp = "     "
             elif self.ew == False:
-                disp = "|   "
+                disp = "|    "
             elif self.ww == False:
-                disp = "   |"
+                disp = "    |"
         return disp
 
     def print_cell_bot(self):
-        disp = "└──┘"
+        disp = "└───┘"
         if self.sw == False:
-            disp = "└  ┘"
+            disp = "└   ┘"
         return disp
 
     def vist(self,state=True):
@@ -95,7 +98,7 @@ class Cell:
     def add_connection(self, direct):
         self.connections.append(direct)
 
-    def get_conections(self, specified="none"):
+    def get_connections(self, specified="none"):
         if specified == "none":
             return self.connections
         else:
@@ -110,6 +113,17 @@ class Cell:
             return True
         else:
             return False
+    def dispConnections(self):
+        string=""
+        if "nw" in self.connections:
+            string+="North "
+        if "sw" in self.connections:
+            string+="South "
+        if "ew" in self.connections:
+            string+="East "
+        if "ww" in self.connections:
+            string+="West "
+        return string
 
 
 class Maze:
@@ -213,56 +227,62 @@ class Maze:
         for row in range(len(self.maze)):
             for col in range(len(self.maze[row])):
                 if self.maze[row][col].get_p():
-                    return row,col
+                    return row, col
     def move(self):
         #first get player cell
-        y,x=self.find_p()
+        y,x =self.find_p()
         #second get input for movement
-        movedir=playerinput()
-        self.maze[y][x].set_p(False)
-        if movedir=="s" or movedir=="down":
-            if y + 1 > self.column-1:
+        movedir=Mplayerinput("Where do you want to go Avalible directions:"+self.maze[y][x].dispConnections()+"\n")
+        if movedir=="s" or movedir=="down" or movedir=="south":
+            if y + 1 > self.row-1 or self.maze[y][x].get_connections("sw")==False:
                 print("Can't go there")
             else:
                 self.maze[y + 1][x].set_p()
-        elif movedir=="w" or movedir=="up":
-            if y - 1 < 0:
+                self.maze[y][x].set_p(False)
+        elif movedir=="w" or movedir=="up" or movedir=="north":
+            if y - 1 < 0 or self.maze[y][x].get_connections("nw")==False:
                 print("Can't go there")
             else:
                 self.maze[y - 1][x].set_p()
-        elif movedir=="w" or movedir=="left":
-            if x - 1 < 0:
+                self.maze[y][x].set_p(False)
+        elif movedir=="a" or movedir=="left" or movedir=="west":
+            if x - 1 < 0 or self.maze[y][x].get_connections("ww")==False:
                 print("Can't go there")
             else:
                 self.maze[y][x - 1].set_p()
-        elif movedir=="d" or movedir=="right":
-            if x + 1 > self.row - 1:
+                self.maze[y][x].set_p(False)
+        elif movedir=="d" or movedir=="right" or movedir=="east":
+            if x + 1 > self.column - 1 or self.maze[y][x].get_connections("ew")==False:
                 print("Can't go there")
             else:
                 self.maze[y][x + 1].set_p()
+                self.maze[y][x].set_p(False)
+        else:
+            print("not a command")
     def change_cell(self,x,y):
         self.maze[x][y].set_p()
 
 
-ms = Maze(3, 3)
+ms = Maze(12, 50)
 ms.print_maze()
-ms.move()
-ms.print_maze()
-print(ms.find_p())
 r = ms.get_maze()
+while Mplayinput!="quit":
+    ms.move()
+    ms.print_maze()
+
 for row in range(len(r)):
     for column in range(len(r[row])):
         cv = r[row][column]
-        print(cv.get_conections())
-
-# m1=Maze()
-# m2=Maze()
-# runing=True
-# while runing==True:
-#     a=input("type")
-#     if a=="1":
-#         m1.print_maze()
-#     if a=="2":
-#         m2.print_maze()
-#     if a=="3":
-#         runing=False
+        print(cv.get_connections())
+#
+# # m1=Maze()
+# # m2=Maze()
+# # runing=True
+# # while runing==True:
+# #     a=input("type")
+# #     if a=="1":
+# #         m1.print_maze()
+# #     if a=="2":
+# #         m2.print_maze()
+# #     if a=="3":
+# #         runing=False
