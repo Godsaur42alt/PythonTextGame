@@ -23,8 +23,11 @@ class Cell:
         self.connections = []
         self.cp=False
         self.make_descr()
-
-
+        self.staird=False
+    def stairify(self, status=True):
+            self.staird=status
+    def get_stair(self):
+        return self.staird
     def make_descr(self, rtype="none"):
         types = ["treasure", "empty", "fight", "tables"]
         if rtype == "none":
@@ -62,9 +65,14 @@ class Cell:
             return False
 
     def print_cell_top(self):
-        disp = "┌───┐"
-        if self.nw == False:
-            disp = "┌   ┐"
+        if self.staird:
+            disp= "\033[1;33m┌───┐\033[0m"
+            if self.nw == False:
+               disp = "\033[1;33m┌   ┐\033[0m"
+        else:
+            disp = "┌───┐"
+            if self.nw == False:
+                disp = "┌   ┐"
         return disp
 
     def print_cell_mid(self):
@@ -76,6 +84,14 @@ class Cell:
                 disp = "| \033[1;31m@\033[0m  "
             elif self.ww == False:
                 disp = "  \033[1;31m@\033[0m |"
+        elif self.staird:
+            disp = "\033[1;33m|   |\033[0m"
+            if self.ew == False and self.ww == False:
+                disp = "     "
+            elif self.ew == False:
+                disp = "\033[1;33m|    \033[0m"
+            elif self.ww == False:
+                disp = "\033[1;33m    |\033[0m"
         else:
             disp = "|   |"
             if self.ew == False and self.ww == False:
@@ -87,9 +103,14 @@ class Cell:
         return disp
 
     def print_cell_bot(self):
-        disp = "└───┘"
-        if self.sw == False:
-            disp = "└   ┘"
+        if self.staird:
+            disp = "\033[1;33m└───┘\033[0m"
+            if self.sw == False:
+                disp = "\033[1;33m└   ┘\033[0m"
+        else:
+            disp = "└───┘"
+            if self.sw == False:
+                disp = "└   ┘"
         return disp
 
     def vist(self,state=True):
@@ -136,6 +157,7 @@ class Maze:
             self.dfs()
 
     def set_maze(self):
+        self.maze = []
         for row in range(self.row):
             xrow = []
             for column in range(self.column):
@@ -156,7 +178,12 @@ class Maze:
                 neighbors.append((x, y - 1))
             return neighbors
 
-        x, y = random.randrange(1, self.column-1, 2), random.randrange(1, self.row, 2)
+        x, y = random.randrange(1, self.column - 1, 2), random.randrange(1, self.row-1, 2)
+        print(y)
+        print(self.row)
+        print(self.maze[y])
+        self.maze[y][x].stairify()
+        x, y = random.randrange(1, self.column-1, 2), random.randrange(1, self.row-1, 2)
         self.maze[y][x].vist()
         self.maze[y][x].set_p()
         stack = [(x, y)]
@@ -259,6 +286,10 @@ class Maze:
                 self.maze[y][x].set_p(False)
         else:
             print("not a command")
+        print(self.maze[y][x].get_stair())
+        if self.maze[y][x].get_stair():
+            self.set_maze()
+            self.dfs()
     def change_cell(self,x,y):
         self.maze[x][y].set_p()
 
