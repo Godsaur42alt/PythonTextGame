@@ -1,5 +1,5 @@
 import random
-
+import Combat
 Mplayinput=""
 
 
@@ -24,6 +24,11 @@ class Cell:
         self.cp=False
         self.make_descr()
         self.staird=False
+        self.murder=False
+    def get_murder(self):
+        return self.murder
+    def murdering(self, status=True):
+        self.murder=status
     def stairify(self, status=True):
             self.staird=status
     def get_stair(self):
@@ -148,10 +153,11 @@ class Cell:
 
 
 class Maze:
-    def __init__(self, row=10, column=10, intialize=True):
+    def __init__(self, row=10, column=10, level=1, intialize=True):
         self.maze = []
         self.row = row
         self.column = column
+        self.level=level
         if intialize:
             self.set_maze()
             self.dfs()
@@ -178,12 +184,12 @@ class Maze:
                 neighbors.append((x, y - 1))
             return neighbors
 
-        x, y = random.randrange(1, self.column - 1, 2), random.randrange(1, self.row-1, 2)
+        x, y = random.randrange(0, self.column - 1, 2), random.randrange(0, self.row-1, 2)
         print(y)
         print(self.row)
         print(self.maze[y])
         self.maze[y][x].stairify()
-        x, y = random.randrange(1, self.column-1, 2), random.randrange(1, self.row-1, 2)
+        x, y = random.randrange(0, self.column-1, 2), random.randrange(0, self.row-1, 2)
         self.maze[y][x].vist()
         self.maze[y][x].set_p()
         stack = [(x, y)]
@@ -206,9 +212,12 @@ class Maze:
                 elif nx < x:
                     direct = "ww"
                     idirect = "ew"
+                murder=random.randint(1,10)
                 self.maze[ny][nx].vist()
                 self.maze[y][x].break_wall(direct)
                 self.maze[ny][nx].break_wall(idirect)
+                if murder==5:
+                    self.maze[ny][nx].murdering(True)
                 stack.append((nx, ny))
             else:
                 stack.pop()
@@ -255,9 +264,28 @@ class Maze:
             for col in range(len(self.maze[row])):
                 if self.maze[row][col].get_p():
                     return row, col
-    def move(self):
+    def move(self, check=False):
         #first get player cell
         y,x =self.find_p()
+        levelstr=str(self.level)
+        print("Maze Depth "+levelstr)
+        #combat
+        if self.maze[y][x].get_murder():
+            Combat.spawnEnemies(1,self.level)
+            print("You've been attacked do do do doo")
+            Combat.combat()
+            self.maze[y][x].murdering(False)
+            self.print_maze()
+        #run goal code
+        if self.maze[y][x].get_stair():
+            self.level += 1
+            
+            if check:
+                self.set_maze()
+                self.dfs()
+                self.print_maze()
+            else:
+                return True, self.level
         #second get input for movement
         movedir=Mplayerinput("Where do you want to go Avalible directions:"+self.maze[y][x].dispConnections()+"\n")
         if movedir=="s" or movedir=="down" or movedir=="south":
@@ -286,20 +314,26 @@ class Maze:
                 self.maze[y][x].set_p(False)
         else:
             print("not a command")
-        print(self.maze[y][x].get_stair())
-        if self.maze[y][x].get_stair():
-            self.set_maze()
-            self.dfs()
+        return False,False
+
     def change_cell(self,x,y):
         self.maze[x][y].set_p()
 
 
-ms = Maze(12, 50)
+ms = Maze(2, 12)
 ms.print_maze()
 r = ms.get_maze()
 while Mplayinput!="quit":
-    ms.move()
-    ms.print_maze()
+    c,l=ms.move()
+    if c:
+        r=ms.get_rows()
+        r+=1
+        co=ms.get_column()
+        co+=1
+        ms=Maze(r,co,l)
+        ms.print_maze()
+    else:
+        ms.print_maze()
 
 for row in range(len(r)):
     for column in range(len(r[row])):
