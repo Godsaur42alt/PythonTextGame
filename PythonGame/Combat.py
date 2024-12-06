@@ -6,8 +6,9 @@ player = Player()
 pcplayinput=""
 Cplayinput = ""
 enemyArr = []
-
-print(len(enemyArr))
+player.add_powers("poison",3,2)
+player.add_powers("curse",2,3)
+player.add_powers("burn", 4,5)
 
 
 def enemyActions(taker, pos=0, target=player):
@@ -45,7 +46,7 @@ def createEnemy(type="null"):
 
 
 def Cplayerinput(text="", cap=False,strip=True):
-   global Cplayinput
+   global Cplayinput, pcplayinput
    pcplayinput=Cplayinput
    Cplayinput = input(text)
    if cap == False:
@@ -60,7 +61,6 @@ def Cplayerinput(text="", cap=False,strip=True):
 def spawnEnemies(num1=1, num2=10, clear=True):
    global enemyArr
    if clear == True:
-       print("cl")
        enemyArr = []
    numE = randint(num1, num2)
    for r in range(numE):
@@ -79,14 +79,26 @@ def combat():
        print("Turn " + str(turnCount))
        print("Your health is "+str(player.get_health()))
        for l in range(len(enemyArr)):
-           print(l)
+           if len(enemyArr)<l:
+               kj=len(enemyArr)-l
+               l+=kj
+           for e in enemyArr[l].get_effects():
+               if e=="poison":
+                   poison(enemyArr[l])
+               if e=="curse":
+                   curse(enemyArr[l])
+               if e=="burn":
+                   burn(enemyArr[l])
+
            if enemyArr[l].get_health() <= 0 and len(enemyArr)!=0:
                print(enemyArr[l].get_type() + " has died")
                enemyArr.pop(l)
                if len(enemyArr)==0:
                    print("You killed them All")
                    break
-               print(l)
+           if len(enemyArr)<l:
+               kj=len(enemyArr)-l
+               l+=kj
            print(str(l+1) + ". Enemy: " + enemyArr[l].get_type() + "(" + str(enemyArr[l].get_health()) + "hp)")
        player.set_defence(player.get_base_defence())
        if len(enemyArr) == 0:
@@ -96,8 +108,12 @@ def combat():
                "what do you want to do \n A. attack        D. defend \n R. runaway       S. stats(keeps turn)\n")
            if Cplayinput == "a":
                Cplayerinput("type in the number of the enemy you want to attack\n")
-               while int(Cplayinput)>len(enemyArr):
-                   print("That wasn't an enemy")
+               try:
+                   while int(Cplayinput)>len(enemyArr):
+                       print("That wasn't an enemy")
+                       Cplayerinput()
+               except ValueError:
+                   print("That wasn't a number")
                    Cplayerinput()
                player.attack(enemyArr[int(Cplayinput)-1])
                break
@@ -121,6 +137,9 @@ def combat():
                    elif Cplayinput == "orc":
                        r = Orc()
                    print("a "+r.get_type()+"'s health is " + str(r.get_health()) + "\n a"+r.get_type()+"'s damage is " + str(r.get_damage()) + "\n a "+r.get_type()+"'s defence is " + str(r.get_defence()))
+               else:
+                   r=enemyArr[int(Cplayinput)-1]
+                   print("a " + r.get_type() + "'s health is " + str(r.get_health()) + "\n a" + r.get_type() + "'s damage is " + str(r.get_damage()) + "\n a " + r.get_type() + "'s defence is " + str(r.get_defence()))
        for x in range(len(enemyArr)-1):
            enemyActions(enemyArr[x],x)
        turnCount += 1
@@ -141,5 +160,4 @@ def combat():
 # print(player.get_kills())
 # while Cplayinput!="quit":
 #     spawnEnemies(1,3)
-#     print(enemyArr)
 #     combat()
