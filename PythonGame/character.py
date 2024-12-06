@@ -3,11 +3,23 @@ from random import *
 
 def poison(target):
     x = target.get_effects()
-    if x.get("poison") != None and x.get("poison")[0] <= 0:
-        target.set_mod(target.get_minmod()) - (x.get("poison")[1])
+    if x.get("poison")[0] >= 0:
+        target.set_mod(Modmin=target.get_minmod() - int(x.get("poison")[1]))
         x["poison"][0] -= 1
     target.set_effects(x)
-
+def curse(target):
+    x = target.get_effects()
+    if x.get("curse")[0] >= 0:
+        target.set_mod(Modmax=target.get_maxmod() - int(x.get("curse")[1]))
+        x["curse"][0] -= 1
+    target.set_effects(x)
+    target.set_canCrit(False)
+def burn(target):
+    x = target.get_effects()
+    if x.get("burn")[0] >= 0:
+        target.set_health(target.get_health() - int(x.get("burn")[1]))
+        x["burn"][0] -= 1
+    target.set_effects(x)
 
 class Character:
     def __init__(self):
@@ -20,7 +32,9 @@ class Character:
         self.basehealth = self.health
         self.basedamage = self.damage
         self.basedefence = self.defence
-
+        self.canCrit=True
+    def set_canCrit(self,status):
+        self.canCrit=status
     def get_base_health(self):
         return self.basehealth
 
@@ -43,10 +57,17 @@ class Character:
         return self.damage
 
     def attack(self, target):
-        atd = (self.damage + randint(self.attackModmin, self.attackModmax)) - target.get_defence()
+        if self.attackModmin < self.attackModmax:
+            atd = (self.damage + randint(self.attackModmin, self.attackModmax)) - target.get_defence()
+        else:
+            atd = -1000
         if atd > 0:
-            target.set_health(target.get_health() - atd)
-            print("You have been hit for " + str(atd))
+            if randint(self.attackModmin,self.attackModmax)==self.attackModmax and self.canCrit==True:
+                target.set_health(target.get_health() - atd*2)
+                print("You have been crited for " + str(atd*2))
+            else:
+                target.set_health(target.get_health() - atd)
+                print("You have been hit for " + str(atd))
         else:
             r = randint(1, 2)
             if r == 1:
@@ -71,10 +92,10 @@ class Character:
         self.effects.update({effect: effectmod})
 
     def get_minmod(self):
-        return attackModmin
+        return self.attackModmin
 
     def get_maxmod(self):
-        return attackModmax
+        return self.attackModmax
 
     def set_mod(self, Modmin="null", Modmax="null"):
         if Modmin == "null":
@@ -103,16 +124,34 @@ class Player(Character):
         return self.kills
 
     def attack(self, target):
-        atd = (self.damage + randint(self.attackModmin, self.attackModmax)) - target.get_defence()
+        if self.attackModmin<self.attackModmax:
+            atd = (self.damage + randint(self.attackModmin, self.attackModmax)) - target.get_defence()
+        else:
+            atd=-1000
         if atd > 0:
+            shjad = 0
             for p in self.powers:
-                if p == "poison":
-                    dur = self.powers[p] * 4
-                    lev = self.powers[p] * 3
-                    target.add_effects(p, dur, lev)
-            print("You have effected enemy with "+str(self.powers))
-            target.set_health(target.get_health() - atd)
-            print("You did " + str(atd))
+                shjad=1
+                dur = self.powers[p][0]
+                lev = self.powers[p][1]
+                target.add_effects(p, dur, lev)
+                if p=="poison":
+                    poison(target)
+                if p=="curse":
+                    curse(target)
+                if p=="burn":
+                    burn(target)
+
+
+
+            if shjad>0:
+                print("You have effected enemy with "+str(self.powers))
+            if randint(self.attackModmin, self.attackModmax) == self.attackModmax and self.canCrit==True:
+                target.set_health(target.get_health() - atd * 2)
+                print("You have been crited for " + str(atd * 2))
+            else:
+                target.set_health(target.get_health() - atd)
+                print("You have been hit for " + str(atd))
         else:
             r = randint(1, 2)
             if r == 1:
@@ -122,8 +161,9 @@ class Player(Character):
         if target.get_health() <= 0:
             self.kills += 1
 
-    def add_powers(self, power, level):
-        self.powers[power] = level
+    def add_powers(self, power, dur, damage):
+        stats=[dur,damage]
+        self.powers[power] =stats
 
     def get_powers(self):
         return self.powers
