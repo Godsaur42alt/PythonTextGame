@@ -1,144 +1,424 @@
-from character import *
-from random import *
+import random
+from random import randint
+
+import Combat
+from Combat import player, Cplayinput
+
+Mplayinput = ""
+pMplayinput=""
+cm=False
+
+def Mplayerinput(text="", cap=False, strip=True):
+    global Mplayinput, pMplayinput
+    pMplayinput=Mplayinput
+    Mplayinput = input(text)
+    if cap == False:
+        Mplayinput = Mplayinput.lower()
+    if strip == True:
+        Mplayinput.strip()
+    return (Mplayinput)
+if Mplayerinput("\033[1;33mIs this Yellow?\033[0m Yes or No")=="yes":
+    cm=True
+
+class Cell:
+    def __init__(self):
+        self.nw = True
+        self.sw = True
+        self.ew = True
+        self.ww = True
+        self.visted = False
+        self.descr = ""
+        self.connections = []
+        self.cp = False
+        self.make_descr()
+        self.staird = False
+        self.murder = False
+
+    def get_murder(self):
+        return self.murder
+
+    def murdering(self, status=True):
+        self.murder = status
+
+    def stairify(self, status=True):
+        self.staird = status
+
+    def get_stair(self):
+        return self.staird
+
+    def make_descr(self, rtype="none"):
+        types = ["treasure", "empty", "fight", "tables"]
+        if rtype == "none":
+            ctype = random.choice(types)
+        else:
+            ctype = rtype
+        if ctype == "treasure":
+            self.descr = "treasure"
+        elif ctype == "empty":
+            self.descr = "empty"
+        elif ctype == "fight":
+            self.descr = "fight"
+        elif ctype == "tables":
+            self.descr = "tables"
+
+    def get_descr(self):
+        return self.descr
+
+    def break_wall(self, wall):
+        if wall == "nw":
+            self.nw = False
+        if wall == "sw":
+            self.sw = False
+        if wall == "ew":
+            self.ew = False
+        if wall == "ww":
+            self.ww = False
+        self.vist()
+        self.add_connection(wall)
+
+    def was_visted(self):
+        if self.visted:
+            return True
+        else:
+            return False
+
+    def print_cell_top(self):
+        if self.staird:
+            if cm:
+                disp = "\033[1;33m┌───┐\033[0m"
+                if self.nw == False:
+                    disp = "\033[1;33m┌   ┐\033[0m"
+            else:
+                disp = "┌───┐"
+                if self.nw == False:
+                    disp = "┌   ┐"
+        else:
+            disp = "┌───┐"
+            if self.nw == False:
+                disp = "┌   ┐"
+        return disp
+
+    def print_cell_mid(self):
+        if cm:
+            if self.cp:
+                disp = "| \033[1;31m@\033[0m |"
+                if self.ew == False and self.ww == False:
+                    disp = "  \033[1;31m@\033[0m  "
+                elif self.ew == False:
+                    disp = "| \033[1;31m@\033[0m  "
+                elif self.ww == False:
+                    disp = "  \033[1;31m@\033[0m |"
+            elif self.staird:
+                disp = "\033[1;33m|   |\033[0m"
+                if self.ew == False and self.ww == False:
+                    disp = "     "
+                elif self.ew == False:
+                    disp = "\033[1;33m|    \033[0m"
+                elif self.ww == False:
+                    disp = "\033[1;33m    |\033[0m"
+            else:
+                disp = "|   |"
+                if self.ew == False and self.ww == False:
+                    disp = "     "
+                elif self.ew == False:
+                    disp = "|    "
+                elif self.ww == False:
+                    disp = "    |"
+        else:
+            if self.cp:
+                disp = "| @ |"
+                if self.ew == False and self.ww == False:
+                    disp = "  @  "
+                elif self.ew == False:
+                    disp = "| @  "
+                elif self.ww == False:
+                    disp = "  @ |"
+            elif self.staird:
+                disp = "| 0 |"
+                if self.ew == False and self.ww == False:
+                    disp = "  0  "
+                elif self.ew == False:
+                    disp = "| 0  "
+                elif self.ww == False:
+                    disp = "  0 |"
+            else:
+                disp = "|   |"
+                if self.ew == False and self.ww == False:
+                    disp = "     "
+                elif self.ew == False:
+                    disp = "|    "
+                elif self.ww == False:
+                    disp = "    |"
+        return disp
+
+    def print_cell_bot(self):
+        if self.staird:
+            if cm:
+                disp = "\033[1;33m└───┘\033[0m"
+                if self.sw == False:
+                    disp = "\033[1;33m└   ┘\033[0m"
+            else:
+                disp = "└───┘"
+                if self.sw == False:
+                    disp = "└   ┘"
+        else:
+            disp = "└───┘"
+            if self.sw == False:
+                disp = "└   ┘"
+        return disp
+
+    def vist(self, state=True):
+        self.visted = state
+
+    def add_connection(self, direct):
+        self.connections.append(direct)
+
+    def get_connections(self, specified="none"):
+        if specified == "none":
+            return self.connections
+        else:
+            if specified in self.connections:
+                return True
+            else:
+                return False
+
+    def set_p(self, state=True):
+        self.cp = state
+
+    def get_p(self):
+        if self.cp:
+            return True
+        else:
+            return False
+
+    def dispConnections(self):
+        string = ""
+        if "nw" in self.connections:
+            string += "North "
+        if "sw" in self.connections:
+            string += "South "
+        if "ew" in self.connections:
+            string += "East "
+        if "ww" in self.connections:
+            string += "West "
+        return string
 
 
-player = Player()
-playinput = ""
-enemyArr = []
+class Maze:
+    def __init__(self, row=10, column=10, level=1, intialize=True):
+        self.maze = []
+        self.row = row
+        self.column = column
+        self.level = level
+        if intialize:
+            self.set_maze()
+            self.dfs()
 
-print(len(enemyArr))
+    def set_maze(self):
+        self.maze = []
+        for row in range(self.row):
+            xrow = []
+            for column in range(self.column):
+                c = Cell()
+                xrow.append(c)
+            self.maze.append(xrow)
 
+    def dfs(self):
+        def get_unvisited_neighbors(x, y):
+            neighbors = []
+            if x + 1 <= self.column - 1 and self.maze[y][x + 1].was_visted() == False:
+                neighbors.append((x + 1, y))
+            if x - 1 >= 0 and self.maze[y][x - 1].was_visted() == False:
+                neighbors.append((x - 1, y))
+            if y + 1 <= self.row - 1 and self.maze[y + 1][x].was_visted() == False:
+                neighbors.append((x, y + 1))
+            if y - 1 >= 0 and self.maze[y - 1][x].was_visted() == False:
+                neighbors.append((x, y - 1))
+            return neighbors
 
-def enemyActions(taker, pos=0, target=player):
-   m = randint(1, 100)
-   if taker.get_nature() == "craven" and ((taker.get_health() / taker.get_base_health()) * 100) < 30-m/30:
-       taker.set_health(0)
-       print(taker.get_type() + " Ran away")
-       if pos > -1:
-           enemyArr.pop(pos)
-   elif m > 30:
-       taker.attack(target)
-   if taker.get_nature == "aggressive" and m > 90:
-       taker.attack(target)
+        x, y = random.randrange(0, self.column - 1, 2), random.randrange(0, self.row - 1, 2)
+        print(y)
+        print(self.row)
+        print(self.maze[y])
+        self.maze[y][x].stairify()
+        x, y = random.randrange(0, self.column - 1, 2), random.randrange(0, self.row - 1, 2)
+        self.maze[y][x].vist()
+        self.maze[y][x].set_p()
+        stack = [(x, y)]
 
+        # DFS algorithm
+        while stack:
+            x, y = stack[-1]
+            neighbors = get_unvisited_neighbors(x, y)
+            if neighbors:
+                nx, ny = random.choice(neighbors)
+                if ny > y:
+                    direct = "sw"
+                    idirect = "nw"
+                elif ny < y:
+                    direct = "nw"
+                    idirect = "sw"
+                elif nx > x:
+                    direct = "ew"
+                    idirect = "ww"
+                elif nx < x:
+                    direct = "ww"
+                    idirect = "ew"
+                murder = random.randint(1, 10)
+                self.maze[ny][nx].vist()
+                self.maze[y][x].break_wall(direct)
+                self.maze[ny][nx].break_wall(idirect)
+                if murder == 5:
+                    self.maze[ny][nx].murdering(True)
+                stack.append((nx, ny))
+            else:
+                stack.pop()
 
+    def print_maze(self):
+        pmaze = []
+        for row in range(len(self.maze)):
+            crow = []
+            trow = []
+            mrow = []
+            brow = []
+            for col in range(len(self.maze[row])):
+                cell = self.maze[row][col]
+                trow.append(cell.print_cell_top())
+                mrow.append(cell.print_cell_mid())
+                brow.append(cell.print_cell_bot())
+            crow.append(trow)
+            crow.append(mrow)
+            crow.append(brow)
+            pmaze.append(crow)
 
+        for a in range(len(pmaze)):
+            # crow is getting looped now
+            for b in range(len(pmaze[a])):
+                bigstring = ""
+                # crow's top row, mid row, and bottom row
+                for c in range(len(pmaze[a][b])):
+                    bigstring += pmaze[a][b][c]
+                print(bigstring)
 
+    def get_cell(self, x, y):
+        return self.maze[y][x]
 
+    def get_maze(self):
+        return self.maze
 
-def createEnemy(type="null"):
-   if type == "null":
-       s = randint(1, 100)
-       if s >= 1 and s <= 69:  # goblin
-           enemy = Goblin()
-       elif s >= 70 and s <= 100:  # orc
-           enemy = Orc()
-   else:
-       if type == "orc":
-           enemy = Orc()
-       elif type == "goblin":
-           enemy = Goblin()
-   return (enemy)
+    def get_rows(self):
+        return self.row
 
+    def get_column(self):
+        return self.column
 
+    def find_p(self):
+        for row in range(len(self.maze)):
+            for col in range(len(self.maze[row])):
+                if self.maze[row][col].get_p():
+                    return row, col
 
+    def move(self, check=False):
+        global Mplayinput
+        # first get player cell
+        y, x = self.find_p()
+        levelstr = str(self.level)
+        print("Maze Depth " + levelstr)
+        # combat
+        if self.maze[y][x].get_murder():
+            Combat.spawnEnemies(1, self.level)
+            print("\n\n\nYou've been attacked do do do doo\n\n\n")
+            Cplayinput=""
+            Combat.combat()
+            self.maze[y][x].murdering(False)
+            self.print_maze()
+        # run goal code
+        if self.maze[y][x].get_stair():
+            self.level += 1
 
-def playerinput(text="", cap=False,strip=True):
-   global playinput
-   playinput = input(text)
-   if cap == False:
-       playinput = playinput.lower()
-   if strip== True:
-      playinput.strip()
-   return (playinput)
+            if check:
+                self.set_maze()
+                self.dfs()
+                self.print_maze()
+            else:
+                return True, self.level
+        # second get input for movement
+        #Actualy giving them option besides move so they can rest and stuff
+        tcount=0
+        while True:
+            movedir=Mplayerinput("What do you want to do, move, look around(write look), loot, or rest.\n Be warned if you spend too long here you will be attacked\n Avalible directions:" + self.maze[y][x].dispConnections() + "\n")
+            if movedir=="":
+                movedir=pMplayinput
+                Mplayinput=pMplayinput
+            if Mplayinput=="look":
+                self.maze[y][x].get_descr()
+            elif Mplayinput=="rest":
+                player.set_health(player.get_health()+20)
+            elif Mplayinput=="loot":
+                print("W.I.P")
+            elif movedir == "s" or movedir == "down" or movedir == "south":
+                if y + 1 > self.row - 1 or self.maze[y][x].get_connections("sw") == False:
+                    print("Can't go there")
+                else:
+                    self.maze[y + 1][x].set_p()
+                    self.maze[y][x].set_p(False)
+            elif movedir == "w" or movedir == "up" or movedir == "north":
+                if y - 1 < 0 or self.maze[y][x].get_connections("nw") == False:
+                    print("Can't go there")
+                else:
+                    self.maze[y - 1][x].set_p()
+                    self.maze[y][x].set_p(False)
+            elif movedir == "a" or movedir == "left" or movedir == "west":
+                if x - 1 < 0 or self.maze[y][x].get_connections("ww") == False:
+                    print("Can't go there")
+                else:
+                    self.maze[y][x - 1].set_p()
+                    self.maze[y][x].set_p(False)
+            elif movedir == "d" or movedir == "right" or movedir == "east":
+                if x + 1 > self.column - 1 or self.maze[y][x].get_connections("ew") == False:
+                    print("Can't go there")
+                else:
+                    self.maze[y][x + 1].set_p()
+                    self.maze[y][x].set_p(False)
+            else:
+                print("not a command")
+            return False, False
 
+    def change_cell(self, x, y):
+        self.maze[x][y].set_p()
 
+ms = Maze(2, 12)
+ms.print_maze()
+r = ms.get_maze()
+while Mplayinput != "quit":
+    c, l = ms.move()
+    if player.get_health()>0:
+        if c:
+            r = ms.get_rows()
+            r += 1
+            co = ms.get_column()
+            co += 1
+            ms = Maze(r, co, l)
+            ms.print_maze()
+        else:
+            ms.print_maze()
+    else:
+        print("you died, the floor you got to was "+str(l)+"\nYou killed "+str(player.get_kills())+" people")
 
+# for row in range(len(r)):
+#     for column in range(len(r[row])):
+#         cv = r[row][column]
+#         print(cv.get_connections())
 
-def spawnEnemies(num1=1, num2=10, clear=True):
-   global enemyArr
-   if clear == True:
-       print("cl")
-       enemyArr = []
-   numE = randint(num1, num2)
-   for r in range(numE):
-       enemyArr.append(createEnemy())
-
-
-
-
-def combat():
-   global enemyArr
-   turnCount = 1
-   while len(enemyArr) > 0:
-       if playinput == "r":
-           print("you ran away")
-           break
-       print("Turn " + str(turnCount))
-       print("Your health is "+str(player.get_health()))
-       for l in range(len(enemyArr)):
-           print(l)
-           if enemyArr[l].get_health() <= 0 and len(enemyArr)!=0:
-               print(enemyArr[l].get_type() + " has died")
-               enemyArr.pop(l)
-               if len(enemyArr)==0:
-                   print("You killed them All")
-                   break
-               print(l)
-           print(str(l+1) + ". Enemy: " + enemyArr[l].get_type() + "(" + str(enemyArr[l].get_health()) + "hp)")
-       player.set_defence(player.get_base_defence())
-       if len(enemyArr) == 0:
-           print(k)
-           break
-       while True:
-           playerinput(
-               "what do you want to do \n A. attack        D. defend \n R. runaway       S. stats(keeps turn)\n")
-           if playinput == "a":
-               playerinput("type in the number of the enemy you want to attack\n")
-               while int(playinput)>len(enemyArr):
-                   print("That wasn't an enemy")
-                   playerinput()
-               player.attack(enemyArr[int(playinput)-1])
-               break
-           elif playinput == "d":
-               player.set_defence(player.get_base_defence() + 5)
-               print("you've increased your defence by 5")
-               break
-           elif playinput == "r":
-               break
-           elif playinput == "s":
-               playerinput(
-                   "Type m for your stats, type i to get the enemy index, or type the number of the enemy you want info about\n")
-               if playinput == "m":
-                   print("Your name is " + player.get_name() + "\n  your health is " + str(
-                       player.get_health()) + "\n  your damage is " + str(
-                       player.get_damage()) + "\n  your defence is " + str(player.get_defence()))
-               elif playinput == "i":
-                   playerinput("Type the type of enemy you want to know about\n")
-                   if playinput == "goblin":
-                       r = Goblin()
-                   elif playinput == "orc":
-                       r = Orc()
-                   print("a "+r.get_type()+"'s health is " + str(r.get_health()) + "\n a"+r.get_type()+"'s damage is " + str(r.get_damage()) + "\n a "+r.get_type()+"'s defence is " + str(r.get_defence()))
-       for x in range(len(enemyArr)-1):
-           enemyActions(enemyArr[x],x)
-       turnCount += 1
-
-
-# while playinput!="yes":
-#   player.set_name(playerinput("Type in your name",True))
-#   print(player.get_name()+" is this correct? Type yes or no")
-#   playerinput()
-# goblin=createEnemy("goblin")
-# print(goblin.get_health())
-# player.set_damage(20)
-# player.attack(goblin)
-# print(goblin.get_health())
-# goblin.attack(player)
-# print(player.get_health())
-# player.attack(goblin)
-# print(player.get_kills())
-while playinput!="quit":
-    spawnEnemies(1,3)
-    print(enemyArr)
-    combat()
+#
+# # m1=Maze()
+# # m2=Maze()
+# # runing=True
+# # while runing==True:
+# #     a=input("type")
+# #     if a=="1":
+# #         m1.print_maze()
+# #     if a=="2":
+# #         m2.print_maze()
+# #     if a=="3":
+# #         runing=False
